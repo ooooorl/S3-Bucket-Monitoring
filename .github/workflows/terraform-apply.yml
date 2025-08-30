@@ -1,57 +1,50 @@
-name: Terraform Apply
-
+name: Terraform Checks
 on:
-  workflow_dispatch:
-    inputs:
-      env:
-        description: "Environment to deploy"
-        required: true
-        default: staging
-        type: choice
-        options:
-          - dev
-          - staging
-          - production
+  push:
+    branches: [ staging, master ]
+  pull_request:
+    branches: [ staging, master ]
 
 permissions:
   contents: read
 
 jobs:
-  terraform-apply:
-    name: Terraform Apply to ${{ github.event.inputs.env }}
+  terraform-checks:
+    name: Terraform Checks
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.env }}
-    env:
-      TF_VAR_env: ${{ github.event.inputs.env }}
+    environment: ${{ github.event.inputs.env || 'staging' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.TF_VAR_AWS_REGION || 'us-east-1' }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Terraform Init (no backend)
+      run: terraform init -backend=false
 
-      - name: Terraform Plan
-        run: |
-          terraform plan -no-color -out=tfplan \
-            -var "role_arn=${{ vars.ROLE_ARN }}" \
-            -var "bucket_name=${{ vars.BUCKET_NAME }}" \
-            -var "aws_region=${{ vars.TF_VAR_AWS_REGION || 'us-east-1' }}" \
-            -var "owner=${{ vars.OWNER }}"
-        env:
-          TF_VAR_env: ${{ github.event.inputs.env }}
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: |
+        terraform plan -no-color \
+          -var "role_arn=${{ vars.ROLE_ARN }}" \
+          -var "bucket_name=${{ vars.BUCKET_NAME }}" \
+          -var "aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+          -var "owner=${{ vars.OWNER }}"
+      env:
+        TF_VAR_env: staging
