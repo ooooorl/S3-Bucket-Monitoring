@@ -1,0 +1,50 @@
+name: Terraform Checks
+on:
+  push:
+    branches: [ staging, master ]
+  pull_request:
+    branches: [ staging, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-checks:
+    name: Terraform Checks
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env || 'staging' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+    - name: Terraform Init (no backend)
+      run: terraform init -backend=false
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: |
+        terraform plan -no-color \
+          -var "role_arn=${{ vars.ROLE_ARN }}" \
+          -var "bucket_name=${{ vars.BUCKET_NAME }}" \
+          -var "aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+          -var "owner=${{ vars.OWNER }}"
+      env:
+        TF_VAR_env: staging
