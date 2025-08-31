@@ -1,0 +1,54 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to deploy"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply to ${{ github.event.inputs.env }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: |
+          terraform plan -no-color -out=tfplan \
+            -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
+            -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
+            -var "aws_region=${{ secrets.AWS_REGION }}" \
+            -var "owner=${{ vars.AWS_TAG_OWNER }}" \
+            -var "env=${{ github.event.inputs.env }}"
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
