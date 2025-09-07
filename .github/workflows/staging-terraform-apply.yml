@@ -38,8 +38,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Terraform Init (dynamic backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
+            -backend-config="key=${{ github.event.inputs.env }}/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
+            -backend-config="encrypt=true"
 
       - name: Terraform Plan
         run: |
