@@ -2,9 +2,9 @@ name: Terraform Checks
 
 on:
   push:
-    branches: [ staging, master ]
+    branches: [staging, master]
   pull_request:
-    branches: [ staging, master ]
+    branches: [staging, master]
 
 permissions:
   contents: read
@@ -13,7 +13,10 @@ jobs:
   terraform-checks:
     name: Terraform Checks
     runs-on: ubuntu-latest
-    environment: "staging"
+    strategy:
+      matrix:
+        environment: [staging, prod]
+    environment: staging
 
     steps:
     - name: Checkout code
@@ -32,28 +35,17 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
-          -backend-config="key=${{ env.ENV }}/terraform.tfstate" \
-          -backend-config="region=${{ secrets.AWS_REGION }}" \
-          -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
-          -backend-config="encrypt=true"
-      env:
-        ENV: ${{ github.ref_name }}
+      run: terraform init
+      working-directory: environments/${{ matrix.environment }}
 
     - name: Terraform Format Check
       run: terraform fmt -check -recursive
+      working-directory: ./
 
     - name: Terraform Validate
       run: terraform validate
+      working-directory: environments/${{ matrix.environment }}
 
     - name: Terraform Plan
-      run: |
-        terraform plan -no-color \
-          -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
-          -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
-          -var "aws_region=${{ secrets.AWS_REGION }}" \
-          -var "owner=${{ vars.AWS_TAG_OWNER }}"
-      env:
-        TF_VAR_env: ${{ env.ENV }}
+      run: terraform plan -no-color
+      working-directory: environments/${{ matrix.environment }}

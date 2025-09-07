@@ -9,9 +9,8 @@ on:
         default: staging
         type: choice
         options:
-          - dev
           - staging
-          - production
+          - prod
 
 permissions:
   contents: read
@@ -38,23 +37,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init (dynamic backend)
-        run: |
-          terraform init \
-            -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
-            -backend-config="key=${{ github.event.inputs.env }}/terraform.tfstate" \
-            -backend-config="region=${{ secrets.AWS_REGION }}" \
-            -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
-            -backend-config="encrypt=true"
+      - name: Terraform Init
+        run: terraform init
+        working-directory: environments/${{ github.event.inputs.env }}
 
       - name: Terraform Plan
-        run: |
-          terraform plan -no-color -out=tfplan \
-            -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
-            -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
-            -var "aws_region=${{ secrets.AWS_REGION }}" \
-            -var "owner=${{ vars.AWS_TAG_OWNER }}" \
-            -var "env=${{ github.event.inputs.env }}"
+        run: terraform plan -no-color -out=tfplan
+        working-directory: environments/${{ github.event.inputs.env }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+        working-directory: environments/${{ github.event.inputs.env }}
