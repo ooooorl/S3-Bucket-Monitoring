@@ -51,6 +51,19 @@ data "aws_iam_policy_document" "readonly" {
       identifiers = [var.role_arn]
     }
   }
+
+  # PutObject applies to objects under the bucket
+  statement {
+    effect = "Allow"
+
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.bucket.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [var.role_arn]
+    }
+  }
 }
 # Attach bucket policy
 resource "aws_s3_bucket_policy" "readonly_policy" {
