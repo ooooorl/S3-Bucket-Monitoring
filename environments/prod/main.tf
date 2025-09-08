@@ -4,9 +4,9 @@ module "s3_bucket" {
 
   bucket_name   = var.bucket_name
   env           = var.env
-  force_destroy = false  # NEVER allow force destroy in prod
+  force_destroy = false # NEVER allow force destroy in prod
   allowed_roles = [var.role_arn]
-  
+
   tags = {
     Owner       = var.owner
     Environment = "production"
@@ -20,12 +20,12 @@ module "iam_policies" {
   policy_name_prefix = var.bucket_name
   bucket_name        = var.bucket_name
   env                = var.env
-  bucket_resources   = [
+  bucket_resources = [
     module.s3_bucket.bucket_arn,
     "${module.s3_bucket.bucket_arn}/*"
   ]
-  role_names         = [basename(var.role_arn)]
-  
+  role_names = [basename(var.role_arn)]
+
   tags = {
     Owner = var.owner
   }
