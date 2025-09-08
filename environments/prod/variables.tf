@@ -1,10 +1,11 @@
-variable "bucket_name" {
-  description = "S3 bucket name"
+variable "role_arn" {
+  description = "IAM Role ARN that can access the S3 bucket"
   type        = string
+  sensitive   = true
 }
 
-variable "role_arn" {
-  description = "IAM Role ARN that can read the S3 bucket"
+variable "bucket_name" {
+  description = "S3 bucket base name (will be appended with environment)"
   type        = string
 }
 
@@ -15,13 +16,11 @@ variable "aws_region" {
 }
 
 variable "env" {
-  description = "Deployment environment (dev/prod/etc.)"
+  description = "Deployment environment"
   type        = string
-  default     = "staging"
 }
 
 variable "owner" {
   description = "Owner of the resource"
   type        = string
-  default     = "plaza.orly.omeles@gmail.com"
 }
