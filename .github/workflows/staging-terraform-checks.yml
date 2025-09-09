@@ -2,9 +2,9 @@ name: Terraform Checks
 
 on:
   push:
-    branches: [ staging, master ]
+    branches: [staging, master]
   pull_request:
-    branches: [ staging, master ]
+    branches: [staging, master]
 
 permissions:
   contents: read
@@ -13,47 +13,111 @@ jobs:
   terraform-checks:
     name: Terraform Checks
     runs-on: ubuntu-latest
-    environment: "staging"
+    environment: staging
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.5.0
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.1
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
-          -backend-config="key=${{ env.ENV }}/terraform.tfstate" \
-          -backend-config="region=${{ secrets.AWS_REGION }}" \
-          -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
-          -backend-config="encrypt=true"
-      env:
-        ENV: ${{ github.ref_name }}
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
+            -backend-config="key=staging/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
+            -backend-config="encrypt=true"
+        working-directory: environments/staging
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive
+      - name: Terraform Format Check
+        run: terraform fmt -recursive
+        working-directory: ./
 
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: environments/staging
 
-    - name: Terraform Plan
-      run: |
-        terraform plan -no-color \
-          -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
-          -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
-          -var "aws_region=${{ secrets.AWS_REGION }}" \
-          -var "owner=${{ vars.AWS_TAG_OWNER }}"
-      env:
-        TF_VAR_env: ${{ env.ENV }}
+      - name: Terraform Plan
+        run: |
+          terraform plan -no-color \
+            -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
+            -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
+            -var "aws_region=${{ secrets.AWS_REGION }}" \
+            -var "owner=${{ vars.AWS_TAG_OWNER }}" \
+            -var "env=staging"
+        working-directory: environments/staging
+
+
+# name: Terraform Checks
+
+# on:
+#   push:
+#     branches: [staging, master]
+#   pull_request:
+#     branches: [staging, master]
+
+# permissions:
+#   contents: read
+
+# jobs:
+#   terraform-checks:
+#     name: Terraform Checks (${{ matrix.env }})
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         env: [staging, prod]
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.13.1
+
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Terraform Init
+#         run: |
+#           terraform init \
+#             -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
+#             -backend-config="key=${{ matrix.env }}/terraform.tfstate" \
+#             -backend-config="region=${{ secrets.AWS_REGION }}" \
+#             -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
+#             -backend-config="encrypt=true"
+#         working-directory: environments/${{ matrix.env }}
+
+#       - name: Terraform Format Check
+#         run: terraform fmt -recursive
+
+#       - name: Terraform Validate
+#         run: terraform validate
+#         working-directory: environments/${{ matrix.env }}
+
+#       - name: Terraform Plan
+#         run: |
+#           terraform plan -no-color \
+#             -var "role_arn=${{ secrets.AWS_IAM_ROLE_ARN }}" \
+#             -var "bucket_name=${{ vars.AWS_BUCKET_NAME }}" \
+#             -var "aws_region=${{ secrets.AWS_REGION }}" \
+#             -var "owner=${{ vars.AWS_TAG_OWNER }}" \
+#             -var "env=${{ matrix.env }}"
+#         working-directory: environments/${{ matrix.env }}

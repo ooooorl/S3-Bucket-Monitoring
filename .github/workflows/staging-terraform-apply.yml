@@ -9,9 +9,8 @@ on:
         default: staging
         type: choice
         options:
-          - dev
           - staging
-          - production
+          - prod
 
 permissions:
   contents: read
@@ -29,7 +28,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.13.1
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,7 +37,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Init (dynamic backend)
+      - name: Terraform Init
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.AWS_BUCKET_TF_STATE }}" \
@@ -46,6 +45,7 @@ jobs:
             -backend-config="region=${{ secrets.AWS_REGION }}" \
             -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
             -backend-config="encrypt=true"
+        working-directory: environments/${{ github.event.inputs.env }}
 
       - name: Terraform Plan
         run: |
@@ -55,6 +55,8 @@ jobs:
             -var "aws_region=${{ secrets.AWS_REGION }}" \
             -var "owner=${{ vars.AWS_TAG_OWNER }}" \
             -var "env=${{ github.event.inputs.env }}"
+        working-directory: environments/${{ github.event.inputs.env }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+        working-directory: environments/${{ github.event.inputs.env }}
