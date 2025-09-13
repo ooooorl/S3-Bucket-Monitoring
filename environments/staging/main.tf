@@ -1,4 +1,8 @@
 # Dev environment specific configuration
+# Every time someone updates your bucket policy, ACL, encryption, or versioning,
+# CloudTrail records the event → EventBridge rule catches it → invokes Lambda → logs into CloudWatch (and optionally SNS).
+
+# Note: Ensure CloudTrail is enabled in the account to capture S3 API calls.
 module "s3_bucket" {
   source = "../../modules/s3-bucket"
 
@@ -14,6 +18,7 @@ module "s3_bucket" {
   }
 }
 
+# IAM Policies for S3 Bucket Access
 module "iam_policies" {
   source = "../../modules/iam"
 
@@ -28,5 +33,20 @@ module "iam_policies" {
 
   tags = {
     Owner = var.owner
+  }
+}
+
+# Add monitoring module (Lambda + EventBridge + CloudTrail integration)
+module "monitoring" {
+  source          = "../../modules/monitoring"
+  env             = var.env
+  bucket_name     = var.bucket_name
+  lambda_package  = var.lambda_package
+  lambda_role_arn = module.iam_policies.lambda_role_arn
+
+  tags = {
+    Owner       = var.owner
+    Environment = "Staging"
+    CostCenter  = "dev"
   }
 }
