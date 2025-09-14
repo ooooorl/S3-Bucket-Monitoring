@@ -25,10 +25,11 @@ variable "owner" {
   type        = string
 }
 
-variable "lambda_role_arn" {
-  description = "IAM Role ARN assumed by the monitoring Lambda"
-  type        = string
-}
+# Enable this if you already have a lambda role created manually
+# variable "lambda_role_arn" {
+#   description = "IAM Role ARN assumed by the monitoring Lambda"
+#   type        = string
+# }
 
 variable "lambda_package" {
   description = "Path to the Lambda deployment package (zip file)"
