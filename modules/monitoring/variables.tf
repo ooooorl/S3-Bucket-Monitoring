@@ -13,10 +13,10 @@ variable "lambda_role_arn" {
   type        = string
 }
 
-variable "lambda_package" {
-  description = "Path to Lambda deployment package (zip)"
-  type        = string
-}
+# variable "lambda_package" {
+#   description = "Path to Lambda deployment package (zip)"
+#   type        = string
+# }
 
 variable "enable_sns" {
   description = "Whether to enable SNS alerts"

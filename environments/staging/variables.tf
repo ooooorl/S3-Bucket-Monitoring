@@ -31,8 +31,8 @@ variable "owner" {
 #   type        = string
 # }
 
-variable "lambda_package" {
-  description = "Path to the Lambda deployment package (zip file)"
-  type        = string
-  default     = "../../lambda/s3-monitoring-lambda.zip"
-}
+# variable "lambda_package" {
+#   description = "Path to the Lambda deployment package (zip file)"
+#   type        = string
+#   default     = "../../lambda/s3-monitoring-lambda.zip"
+# }

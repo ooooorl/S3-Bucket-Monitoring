@@ -1,10 +1,17 @@
+# Automatically zip the Lambda function code
+resource "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda"
+  output_path = "${path.module}/s3-monitoring-lambda.zip"
+}
+
 # Provision a Lambda Function
 resource "aws_lambda_function" "s3_control_logger" {
   function_name = "${var.env}-${var.bucket_name}-s3-control-logger"
   handler       = "index.handler"
   runtime       = "python3.13"
   role          = var.lambda_role_arn
-  filename      = var.lambda_package
+  filename      = archive_file.lambda_zip.output_path
 
   environment {
     variables = {

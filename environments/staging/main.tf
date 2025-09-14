@@ -41,7 +41,6 @@ module "monitoring" {
   source          = "../../modules/monitoring"
   env             = var.env
   bucket_name     = var.bucket_name
-  lambda_package  = var.lambda_package
   lambda_role_arn = module.iam_policies.lambda_role_arn
 
   tags = {
