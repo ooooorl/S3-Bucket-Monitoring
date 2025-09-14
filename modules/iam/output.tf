@@ -12,3 +12,8 @@ output "attached_roles" {
   description = "List of roles the policy was attached to"
   value       = var.role_names
 }
+
+output "lambda_role_arn" {
+  description = "ARN of the Lambda execution role"
+  value = aws_iam_role.lambda_exec.arn
+}
