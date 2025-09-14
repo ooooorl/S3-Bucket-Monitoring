@@ -17,7 +17,7 @@ resource "aws_lambda_function" "s3_control_logger" {
 # Provision an EventBridge Rule for S3 Bucket Policy Changes
 # Using the default management event provided by AWS CloudTrail
 resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
-  name        = "${var.env}-${var.bucket_name}-s3-bucket-policy-change"
+  name        = "${var.bucket_name}-policy-change"
   description = "Rule to capture S3 bucket policy changes"
   
   event_pattern = jsonencode({
