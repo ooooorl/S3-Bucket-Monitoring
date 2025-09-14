@@ -21,3 +21,27 @@ resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
   role       = var.role_names[count.index]
   policy_arn = aws_iam_policy.s3_access_policy.arn
 }
+
+# Lambda execution role attachment
+# Creates a new role for the monitoring Lambda
+resource "aws_iam_role" "lambda_exec" {
+  name = "${var.env}-${var.bucket_name}-lambda-exec-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"  # Trust Lambda service to assume this role
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
