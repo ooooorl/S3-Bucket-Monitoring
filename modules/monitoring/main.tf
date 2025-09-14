@@ -26,8 +26,8 @@ resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
     detail = {
       eventSource = ["s3.amazonaws.com"]
       eventName = [
-        "PutBucketPolicy", 
-        "DeleteBucketPolicy", 
+        "PutBucketPolicy",      # These are the events that change bucket policies
+        "DeleteBucketPolicy",   # It will then trigger the cloudtrail once these events occur
         "PutBucketAcl", 
         "PutBucketCors", 
         "PutBucketLogging", 
@@ -42,7 +42,7 @@ resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
   })
 }
 
-# Event Target to invoke Lambda on rule match
+# Connect the EventBridge Rule to the Lambda Function
 resource "aws_cloudwatch_event_target" "send_to_lambda" {
   rule      = aws_cloudwatch_event_rule.s3_bucket_policy_change.name
   target_id = "SendToLambda"

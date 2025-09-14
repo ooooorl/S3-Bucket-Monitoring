@@ -23,6 +23,7 @@ resource "aws_iam_role_policy_attachment" "s3_access_attachment" {
 }
 
 # Lambda execution role attachment
+# Creates a new role for the monitoring Lambda
 resource "aws_iam_role" "lambda_exec" {
   name = "${var.env}-${var.bucket_name}-lambda-exec-role"
 
@@ -33,7 +34,7 @@ resource "aws_iam_role" "lambda_exec" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "lambda.amazonaws.com"
+          Service = "lambda.amazonaws.com"  # Trust Lambda service to assume this role
         }
       }
     ]
