@@ -33,15 +33,14 @@ resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
     detail = {
       eventSource = ["s3.amazonaws.com"]
       eventName = [
-        "PutBucketPolicy",      # These are the events that change bucket policies
-        "DeleteBucketPolicy",   # It will then trigger the cloudtrail once these events occur
-        "PutBucketAcl", 
+        "PutBucketPolicy",      # These are the events that changes bucket policies
+        "DeleteBucketPolicy",   # If it happens, It will then trigger the cloudtrail once these events occur
         "PutBucketCors", 
         "PutBucketLogging", 
         "PutBucketVersioning"
       ]
 
-      # Enable this to capture specific bucket
+    # Enable this to capture specific bucket
     #   requestParameters = {
     #     bucketName = [var.bucket_name]
     #   }

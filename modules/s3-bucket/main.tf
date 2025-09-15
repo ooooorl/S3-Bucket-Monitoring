@@ -39,9 +39,8 @@ data "aws_iam_policy_document" "bucket_policy" {
   # GetObject and PutObject apply to objects under the bucket
   statement {
     effect = "Allow"
-    actions   = ["s3:GetObject"]
+    actions   = ["s3:GetObject", "s3:PutObject"]
     resources = ["${aws_s3_bucket.this.arn}/*"]
-    # actions   = ["s3:GetObject", "s3:PutObject"]
 
     principals {
       type        = "AWS"
