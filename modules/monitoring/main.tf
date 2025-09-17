@@ -1,3 +1,18 @@
+# Provision a Cloudtrail Trail for S3 Bucket Policy Changes (Automatically send to EventBridge)
+resource "aws_cloudtrail" "s3_policy_trail" {
+  name                          = "${var.env}-${var.bucket_name}-s3-policy-trail"
+  s3_bucket_name                = var.cloudtrail_logs_bucket_name
+  include_global_service_events = true
+  is_multi_region_trail         = true
+  enable_log_file_validation    = true
+
+  event_selector {
+    read_write_type           = "All"
+    include_management_events = true
+  }
+}
+
+
 # Automatically zip the Lambda function code
 resource "archive_file" "lambda_zip" {
   type        = "zip"
