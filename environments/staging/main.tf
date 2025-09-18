@@ -38,10 +38,11 @@ module "iam_policies" {
 
 # Add monitoring module (Lambda + EventBridge + CloudTrail integration)
 module "monitoring" {
-  source          = "../../modules/monitoring"
-  env             = var.env
-  bucket_name     = var.bucket_name
-  lambda_role_arn = module.iam_policies.lambda_role_arn
+  source                      = "../../modules/monitoring"
+  env                         = var.env
+  bucket_name                 = var.bucket_name
+  lambda_role_arn             = module.iam_policies.lambda_role_arn
+  cloudtrail_logs_bucket_name = module.s3_bucket.bucket_name # Use the same bucket for CloudTrail logs
 
   tags = {
     Owner       = var.owner

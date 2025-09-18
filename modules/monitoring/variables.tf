@@ -13,10 +13,10 @@ variable "lambda_role_arn" {
   type        = string
 }
 
-# variable "lambda_package" {
-#   description = "Path to Lambda deployment package (zip)"
-#   type        = string
-# }
+variable "cloudtrail_logs_bucket_name" {
+  description = "Name of the existing S3 bucket for CloudTrail logs"
+  type        = string
+}
 
 variable "enable_sns" {
   description = "Whether to enable SNS alerts"
