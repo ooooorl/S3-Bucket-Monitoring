@@ -19,6 +19,12 @@ def handler(event, context):
     logger.info(f"Environment: {env}")
     logger.info(f"Bucket: {bucket_name}")
     logger.info(f"Event Detail: {json.dumps(event)}")
+    logger.info(f"Request ID: {context.aws_request_id}")
+    logger.info(f"Log Group: {context.log_group_name}")
+    logger.info(f"Log Stream: {context.log_stream_name}")
+    logger.info(f"Function Name: {context.function_name}")
+    logger.info(f"Function Version: {context.function_version}")
+    logger.info(f"Memory Limit: {context.memory_limit_in_mb} MB")
 
     return {
         "statusCode": 200,
