@@ -1,4 +1,4 @@
-# Provision a Cloudtrail Trail for S3 Bucket Policy Changes (Automatically send to EventBridge)
+# Provision a Cloudtrail Trail for S3 Bucket Policy Changes (Changes are logged in the specified bucket)
 resource "aws_cloudtrail" "s3_policy_trail" {
   name                          = "${var.env}-${var.bucket_name}-s3-policy-trail"
   s3_bucket_name                = var.cloudtrail_logs_bucket_name
@@ -37,7 +37,8 @@ resource "aws_lambda_function" "s3_control_logger" {
 }
 
 # Provision an EventBridge Rule for S3 Bucket Policy Changes
-# Using the default management event provided by AWS CloudTrail
+# EventBridge is continuously receiving CloudTrail management events.
+# Using CloudTrail management events automatically available in EventBridge
 resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
   name        = "${var.bucket_name}-policy-change"
   description = "Rule to capture S3 bucket policy changes"
@@ -48,8 +49,9 @@ resource "aws_cloudwatch_event_rule" "s3_bucket_policy_change" {
     detail = {
       eventSource = ["s3.amazonaws.com"]
       eventName = [
-        "PutBucketPolicy",      # These are the events that changes bucket policies
-        "DeleteBucketPolicy",   # If it happens, It will then trigger the cloudtrail once these events occur
+        # These are the available S3 Bucket Policies API call to monitor and trigger the Lambda function
+        "PutBucketPolicy",
+        "DeleteBucketPolicy",   
         "PutBucketCors", 
         "PutBucketLogging", 
         "PutBucketVersioning"
